@@ -1,24 +1,30 @@
 import copy
+import random
 
+
+DEBUG = False
 
 class Puyopuyo(object):
     WIDTH = 6
     HEIGHT = 13
 
-    def __init__(self, string):
+    def __init__(self, string=None):
         self.puyos = [[" " for x in xrange(self.WIDTH)] for y in xrange(self.HEIGHT)]
         self.pre_puyos = [[" " for x in xrange(self.WIDTH)] for y in xrange(self.HEIGHT)]
+        self.rensa = 0
+        self.falling = None
 
         row = 0
         col = 0
-        for color in string:
-            if color == "\n":
-                col += 1
-                row = 0
-                continue
-            else:
-                self.puyos[col][row] = color
-                row += 1
+        if string:
+            for color in string:
+                if color == "\n":
+                    col += 1
+                    row = 0
+                    continue
+                else:
+                    self.puyos[col][row] = color
+                    row += 1
 
     def scan(self, col, row, chained, color):
         if row < self.WIDTH-1:
@@ -42,7 +48,7 @@ class Puyopuyo(object):
         return chained
 
 
-    def drop(self):
+    def fill(self):
         prepuyos = None
         while self.puyos != prepuyos:
             prepuyos = copy.deepcopy(self.puyos)
@@ -58,19 +64,21 @@ class Puyopuyo(object):
 
 
     def update(self):
-        rensa = 0
-
-        while self.puyos != self.pre_puyos:
+        # in rensa processing
+        if not self.falling:
             string=''
             puyo_to_remove = set()
             self.pre_puyos = copy.deepcopy(self.puyos)
 
-            for horizontal in self.puyos:
-                string += ''.join(horizontal) + '\n'
-            print string, '++++++++++++++++++++++++++'
+            if DEBUG:
+                for horizontal in self.puyos:
+                    string += ''.join(horizontal) + '\n'
+                print string, '++++++++++++++++++++++++++'
 
             for col in xrange(self.HEIGHT):
                 for row in xrange(self.WIDTH):
+                    if (col, row) in puyo_to_remove:
+                        continue
                     color = self.puyos[col][row]
                     chained = [(col, row)]
 
@@ -81,12 +89,33 @@ class Puyopuyo(object):
                             puyo_to_remove = puyo_to_remove.union(chained)
 
             if len(puyo_to_remove):
-                rensa += 1
-                print rensa
+                self.rensa += 1
+                print self.rensa
                 self.remove_puyo(puyo_to_remove)
 
-            self.drop()
-        return rensa
+            self.fill()
+
+            if self.puyos == self.pre_puyos:
+                self.rensa = 0
+
+                # GAME OVER
+                if self.puyos[0][2] != " ":
+                    print("GAME OVER")
+                    return False
+                else:
+                    self.falling = {"color":random.choice(("R", "G", "B", "Y")),
+                                    "pos":(0, 2)}
+        # drop puyo
+        else:
+            col, row = self.falling["pos"]
+            if col == (self.HEIGHT-1) or self.puyos[col+1][row] != " ":
+                self.puyos[col][row] = self.falling["color"]
+                self.falling = None
+            else:
+                self.falling["pos"] = (col+1, row)
+
+        return True
+
 
 F = """  GYRR
 RYYGYG
@@ -104,7 +133,12 @@ GRYGYR"""
 
 def main():
     puyopuyo1 = Puyopuyo(F)
-    puyopuyo1.update()
+    loop = True
+    print "PRESS ENTER KEY"
+    while puyopuyo1.falling is None:
+        loop = puyopuyo1.update()
+        i = raw_input()
 
 if __name__ == '__main__':
+    DEBUG = True
     main()

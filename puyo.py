@@ -65,7 +65,7 @@ class Puyopuyo(object):
 
     def update(self):
         # in rensa processing
-        if not self.falling:
+        if self.falling is None:
             string=''
             puyo_to_remove = set()
             self.pre_puyos = copy.deepcopy(self.puyos)
@@ -103,16 +103,26 @@ class Puyopuyo(object):
                     print("GAME OVER")
                     return False
                 else:
-                    self.falling = {"color":random.choice(("R", "G", "B", "Y")),
-                                    "pos":(0, 2)}
+                    self.falling = ({"color":random.choice(("R", "G", "B", "Y")),
+                                     "pos":(0, 2)},
+                                    {"color":random.choice(("R", "G", "B", "Y")),
+                                     "pos":(1, 2)}
+                                    )
         # drop puyo
         else:
-            col, row = self.falling["pos"]
-            if col == (self.HEIGHT-1) or self.puyos[col+1][row] != " ":
-                self.puyos[col][row] = self.falling["color"]
+            col1, row1 = self.falling[0]["pos"]
+            col2, row2 = self.falling[1]["pos"]
+
+            # on bottom
+            if (col1 == (self.HEIGHT-1) or self.puyos[col1+1][row1] != " "
+               or col2 == (self.HEIGHT-1) or self.puyos[col2+1][row2] != " "):
+                self.puyos[col1][row1] = self.falling[0]["color"]
+                self.puyos[col2][row2] = self.falling[1]["color"]
                 self.falling = None
+            # falling
             else:
-                self.falling["pos"] = (col+1, row)
+                self.falling[0]["pos"] = (col1+1, row1)
+                self.falling[1]["pos"] = (col2+1, row2)
 
         return True
 
@@ -133,10 +143,9 @@ GRYGYR"""
 
 def main():
     puyopuyo1 = Puyopuyo(F)
-    loop = True
     print "PRESS ENTER KEY"
     while puyopuyo1.falling is None:
-        loop = puyopuyo1.update()
+        puyopuyo1.update()
         i = raw_input()
 
 if __name__ == '__main__':

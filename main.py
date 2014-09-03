@@ -14,8 +14,9 @@ def drow(p, screen):
             if color != " ":
                 screen.blit(gem[color], (x_offset + x*24, y_offset + y*24))
     if p.falling:
-        y, x = p.falling["pos"]
-        screen.blit(gem[p.falling["color"]], (x_offset + x*24, y_offset + y*24))
+        for i in xrange(2):
+            y, x = p.falling[i]["pos"]
+            screen.blit(gem[p.falling[i]["color"]], (x_offset + x*24, y_offset + y*24))
 
 pygame.init()
 SCREEN_SIZE = (640, 480)
@@ -30,7 +31,8 @@ gem = {"R":pygame.image.load("r.png").convert_alpha(),
 p1 = puyo.Puyopuyo(puyo.F)
 p1.controller = {"left":pygame.K_LEFT,
                  "down":pygame.K_DOWN,
-                 "right":pygame.K_RIGHT}
+                 "right":pygame.K_RIGHT,
+                 "roll":pygame.K_a}
 p1.OFFSET = (100, 100)
 
 screen.fill((100, 100, 100),
@@ -53,16 +55,26 @@ while True:
     # control puyo
     if p1.falling and not (counter % 3):
         keys = pygame.key.get_pressed()
-        col, row = p1.falling["pos"]
+        col1, row1 = p1.falling[0]["pos"]
+        col2, row2 = p1.falling[1]["pos"]
+        a1 = col1 - col2
+        a2 = row1 - row2
+
         if keys[p1.controller["left"]]:
-            if row > 0 and p1.puyos[col][row-1] == " ":
-                p1.falling["pos"] = (col, row-1)
+            if (row1 > 0 and p1.puyos[col1][row1-1] == " ") and (row2 > 0 and p1.puyos[col2][row2-1] == " "):
+                p1.falling[0]["pos"] = (col1, row1-1)
+                p1.falling[1]["pos"] = (col2, row2-1)
         if keys[p1.controller["right"]]:
-            if row < p1.WIDTH-1 and p1.puyos[col][row+1] == " ":
-                p1.falling["pos"] = (col, row+1)
+            if (row1 < p1.WIDTH-1 and p1.puyos[col1][row1+1] == " ") and (row2 < p1.WIDTH-1 and p1.puyos[col2][row2+1] == " "):
+                p1.falling[0]["pos"] = (col1, row1+1)
+                p1.falling[1]["pos"] = (col2, row2+1)
         if keys[p1.controller["down"]]:
-            if col < p1.HEIGHT-1 and p1.puyos[col+1][row] == " ":
-                p1.falling["pos"] = (col+1, row)
+            if (col1 < p1.HEIGHT-1 and p1.puyos[col1+1][row1] == " ") and (col2 < p1.HEIGHT-1 and p1.puyos[col2+1][row2] == " "):
+                p1.falling[0]["pos"] = (col1+1, row1)
+                p1.falling[1]["pos"] = (col2+1, row2)
+        if keys[p1.controller["roll"]]:
+            if (col1 < p1.HEIGHT-1 and p1.puyos[col1+1][row1] == " "):
+                p1.falling[1]["pos"] = (col1-a2, row1+a1)
 
     # update puyos' position
     if not (counter % 50):

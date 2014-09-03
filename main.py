@@ -16,7 +16,8 @@ def drow(p, screen):
     if p.falling:
         for i in xrange(2):
             y, x = p.falling[i]["pos"]
-            screen.blit(gem[p.falling[i]["color"]], (x_offset + x*24, y_offset + y*24))
+            if y >= 0 and x >= 0:
+                screen.blit(gem[p.falling[i]["color"]], (x_offset + x*24, y_offset + y*24))
 
 pygame.init()
 SCREEN_SIZE = (640, 480)
@@ -28,7 +29,7 @@ gem = {"R":pygame.image.load("r.png").convert_alpha(),
        "Y":pygame.image.load("y.png").convert_alpha()}
 
 
-p1 = puyo.Puyopuyo(puyo.F)
+p1 = puyo.Puyopuyo("")
 p1.controller = {"left":pygame.K_LEFT,
                  "down":pygame.K_DOWN,
                  "right":pygame.K_RIGHT,
@@ -73,7 +74,13 @@ while True:
                 p1.falling[0]["pos"] = (col1+1, row1)
                 p1.falling[1]["pos"] = (col2+1, row2)
         if keys[p1.controller["roll"]]:
-            if (col1 < p1.HEIGHT-1 and p1.puyos[col1+1][row1] == " "):
+            col1, row1 = p1.falling[0]["pos"]
+            col2, row2 = p1.falling[1]["pos"]
+            a1 = col1 - col2
+            a2 = row1 - row2
+            if (row1+a1 in (-1, p1.WIDTH)) or col1-a2 == p1.HEIGHT or p1.puyos[col1-a2][row1+a1] != " ":
+                pass
+            else:
                 p1.falling[1]["pos"] = (col1-a2, row1+a1)
 
     # update puyos' position

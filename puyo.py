@@ -75,25 +75,25 @@ class Puyopuyo(object):
                     string += ''.join(horizontal) + '\n'
                 print string, '++++++++++++++++++++++++++'
 
-            for col in xrange(self.HEIGHT):
-                for row in xrange(self.WIDTH):
-                    if (col, row) in puyo_to_remove:
-                        continue
-                    color = self.puyos[col][row]
-                    chained = [(col, row)]
+            self.fill()
+            if self.puyos == self.pre_puyos:
+                for col in xrange(self.HEIGHT):
+                    for row in xrange(self.WIDTH):
+                        if (col, row) in puyo_to_remove:
+                            continue
+                        color = self.puyos[col][row]
+                        chained = [(col, row)]
 
-                    if color != ' ':
-                        chained = self.scan(col, row, chained, color)
+                        if color != ' ':
+                            chained = self.scan(col, row, chained, color)
 
-                        if len(chained) >= 4:
-                            puyo_to_remove = puyo_to_remove.union(chained)
+                            if len(chained) >= 4:
+                                puyo_to_remove = puyo_to_remove.union(chained)
 
             if len(puyo_to_remove):
                 self.rensa += 1
                 print self.rensa
                 self.remove_puyo(puyo_to_remove)
-
-            self.fill()
 
             if self.puyos == self.pre_puyos:
                 self.rensa = 0
